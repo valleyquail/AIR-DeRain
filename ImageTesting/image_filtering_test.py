@@ -18,7 +18,7 @@ def CannyThreshold(val):
     cv.imshow(window_name, dst)
 
 
-img = cv.imread(cv.samples.findFile("../WholeImageData/train/data/12_rain.png"))
+img = cv.imread(cv.samples.findFile("../WholeImageData/train/data/35_rain.png"))
 
 if img is None:
     sys.exit("Could not find the image")

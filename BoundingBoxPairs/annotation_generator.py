@@ -1,7 +1,10 @@
+import os
+
 import cv2 as cv
 import sys
 import numpy as np
 import random as rng
+import csv
 
 rng.seed(12345)
 
@@ -12,6 +15,7 @@ dilation_kernel = cv.getStructuringElement(dilation_shape, (2 * dilation_size + 
 
 
 def threshold_callback(mask_path, val):
+    # print(mask_path)
     mask = cv.imread(cv.samples.findFile(mask_path))
     # output = cv.imread(cv.samples.findFile(output_path))
     threshold = val
@@ -25,27 +29,39 @@ def threshold_callback(mask_path, val):
     boundRect = [None] * len(contours)
     centers = [None] * len(contours)
     radius = [None] * len(contours)
+
     for i, c in enumerate(contours):
         contours_poly[i] = cv.approxPolyDP(c, 10, True)
         boundRect[i] = cv.boundingRect(contours_poly[i])
         centers[i], radius[i] = cv.minEnclosingCircle(contours_poly[i])
-    print(boundRect)
-    drawing = np.zeros((mask.shape[0], mask.shape[1], 3), dtype=np.uint8)
-
-    for i in range(len(contours)):
-        color = (rng.randint(0, 256), rng.randint(0, 256), rng.randint(0, 256))
-        cv.drawContours(drawing, contours_poly, i, color)
-        cv.rectangle(drawing, (int(boundRect[i][0]), int(boundRect[i][1])),
-                     (int(boundRect[i][0] + boundRect[i][2]), int(boundRect[i][1] + boundRect[i][3])), color, 2)
-        cv.circle(drawing, (int(centers[i][0]), int(centers[i][1])), int(radius[i]), color, 2)
-
-    cv.imshow('Contours', drawing)
-
     return boundRect
 
 
 if __name__ == "__main__":
-    threshold_callback("../BoundingBoxPairs/masks/0_mask.png",50)
 
-    cv.waitKey(0)
-    sys.exit()
+    header = ['Image']
+    for i in range(50):
+        header.append('x_top{}'.format(i))
+        header.append('y_top{}'.format(i))
+        header.append('x_bottom{}'.format(i))
+        header.append('y_bottom{}'.format(i))
+    print(header)
+    file = "Annotations/annotations.csv"
+    with open(file, 'w') as csvfile:
+
+        writer = csv.writer(csvfile)
+        writer.writerow(header)
+        images = os.listdir("masks/")
+        images = sorted(images)
+        for image in images:
+            path = "masks/" + image
+            # print(path)
+            rectangle = threshold_callback(path, 50)
+            image = image.replace('mask', 'blur')
+            coords = []
+            for s in rectangle:
+                for x in s:
+                    coords.append(x)
+            writer.writerow([image, *coords])
+
+

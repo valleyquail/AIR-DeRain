@@ -1,7 +1,7 @@
 import cv2 as cv
 import os
 import re
-from bounding_box_generator import threshold_callback
+from val_bounding_box_generator import threshold_callback
 
 original_path = "input/"
 mask_path = "masks/"
